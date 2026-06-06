@@ -1689,6 +1689,8 @@ document.getElementById('file-import').addEventListener('change', e => {
         if (base.themeColors) p.themeColors = base.themeColors;
         if (base.animations !== undefined) p.animations = base.animations;
         if (base.netMap) p.netMap = base.netMap;
+        if (base.searchProviders) p.searchProviders = base.searchProviders;
+        if (base.activeSearchIdx !== undefined) p.activeSearchIdx = base.activeSearchIdx;
         return p;
       }
 
@@ -1711,6 +1713,7 @@ document.getElementById('file-import').addEventListener('change', e => {
           const t = getProfileTheme();
           applyThemeVars(t, t === 'custom' ? getProfileColors() : null);
           applyAnimations(getProfileAnimations());
+          updateSearchLabel();
           render();
           toast('Imported ' + importedTiles.length + ' shortcuts ✓');
         }
@@ -1726,6 +1729,7 @@ document.getElementById('file-import').addEventListener('change', e => {
         const t = getProfileTheme();
         applyThemeVars(t, t === 'custom' ? getProfileColors() : null);
         applyAnimations(getProfileAnimations());
+        updateSearchLabel();
         render();
         toast('Imported ' + importedTiles.length + ' shortcuts ✓');
       }
