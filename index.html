@@ -919,6 +919,7 @@ const DEFAULT_PROVIDERS = [
 function searchProviders() {
   if (!activeProfile().searchProviders || !activeProfile().searchProviders.length) {
     activeProfile().searchProviders = JSON.parse(JSON.stringify(DEFAULT_PROVIDERS));
+    saveStore();
   }
   return activeProfile().searchProviders;
 }
