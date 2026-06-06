@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Start</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #f5f4f0;
+  --surface:   #ffffff;
+  --surface2:  #eeede9;
+  --border:    rgba(0,0,0,0.08);
+  --border-md: rgba(0,0,0,0.15);
+  --text:      #1c1c1a;
+  --text-2:    #888880;
+  --text-3:    #bbb;
+  --accent:    #1c1c1a;
+  --danger:    #c0392b;
+  --r:         14px;
+  --r-sm:      8px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #141413;
+    --surface:   #1e1e1c;
+    --surface2:  #272725;
+    --border:    rgba(255,255,255,0.07);
+    --border-md: rgba(255,255,255,0.14);
+    --text:      #eeeee8;
+    --text-2:    #77776e;
+    --text-3:    #444;
+    --accent:    #eeeee8;
+    --shadow:    0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+  }
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html, body {
+  min-height:100vh;
+  background:var(--bg);
+  font-family:'DM Sans', system-ui, sans-serif;
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+body {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:3rem 1.5rem; gap:2.5rem;
+}
+
+/* ── Grid ── */
+#grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, 108px);
+  gap:18px; justify-content:center;
+  max-width:860px; width:100%;
+}
+
+/* ── Tile ── */
+.tile {
+  display:flex; flex-direction:column;
+  align-items:center; gap:10px;
+  text-decoration:none; color:var(--text);
+  cursor:pointer; position:relative;
+  outline:none; user-select:none;
+  padding:4px; border-radius:var(--r);
+  transition:transform 0.13s ease;
+}
+.tile:hover  { transform:translateY(-2px); }
+.tile:active { transform:translateY(0); }
+.tile:focus-visible { outline:2px solid var(--text); outline-offset:2px; }
+
+.tile-img {
+  width:64px; height:64px; border-radius:14px;
+  object-fit:contain; display:block;
+  background:var(--surface2);
+  box-shadow:var(--shadow);
+  transition:box-shadow 0.13s ease;
+  image-rendering:-webkit-optimize-contrast;
+  image-rendering:crisp-edges;
+}
+.tile:hover .tile-img { box-shadow:0 4px 18px rgba(0,0,0,0.12); }
+
+.tile-fallback {
+  width:64px; height:64px; border-radius:14px;
+  background:var(--surface); box-shadow:var(--shadow);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; font-weight:500; color:var(--text-2);
+  text-transform:uppercase; flex-shrink:0;
+  transition:box-shadow 0.13s ease;
+}
+.tile:hover .tile-fallback { box-shadow:0 4px 18px rgba(0,0,0,0.12); }
+
+.tile-label {
+  font-size:11.5px; font-weight:400; color:var(--text-2);
+  max-width:100px; text-align:center;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1;
+}
+
+/* Add tile */
+.tile-add .tile-fallback {
+  background:transparent;
+  border:1.5px dashed var(--border-md);
+  box-shadow:none; color:var(--text-3); font-size:26px;
+  transition:background 0.13s, border-color 0.13s, box-shadow 0.13s;
+}
+.tile-add:hover .tile-fallback { background:var(--surface); border-style:solid; box-shadow:var(--shadow); }
+.tile-add .tile-label { color:var(--text-3); }
+
+/* Delete btn */
+.del-btn {
+  display:none; position:absolute; top:-4px; right:8px;
+  width:20px; height:20px; border-radius:50%;
+  background:rgba(20,20,18,0.7); color:#fff;
+  font-size:13px; line-height:20px; text-align:center;
+  cursor:pointer; z-index:5; border:none; font-family:inherit;
+}
+body.editing .tile:not(.tile-add) .del-btn { display:block; }
+body.editing .tile:not(.tile-add) { animation:wobble 0.45s ease infinite alternate; cursor:grab; }
+body.editing .tile:not(.tile-add):active { cursor:grabbing; }
+body.editing .tile.dragging { opacity:0.4; animation:none; }
+body.editing .tile.drag-over { transform:scale(1.05); animation:none; }
+@keyframes wobble {
+  from { transform:rotate(-1deg); }
+  to   { transform:rotate( 1deg); }
+}
+
+/* ── Toolbar ── */
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
+
+.btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:400;
+  border:0.5px solid var(--border-md); border-radius:var(--r-sm);
+  background:var(--surface); color:var(--text-2); cursor:pointer;
+  transition:background 0.12s, color 0.12s; box-shadow:var(--shadow);
+  white-space:nowrap;
+}
+.btn:hover { background:var(--surface2); color:var(--text); }
+.btn svg { flex-shrink:0; }
+.btn-primary { background:var(--accent); color:var(--bg); border-color:transparent; }
+.btn-primary:hover { opacity:0.82; background:var(--accent); color:var(--bg); }
+.btn-danger { color:var(--danger); }
+.btn-danger:hover { background:rgba(192,57,43,0.08); color:var(--danger); }
+
+/* ── Profile dropdown ── */
+.profile-wrap { position:relative; }
+
+.profile-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:7px 12px; font-family:inherit; font-size:12.5px; font-weight:400;
+  border:0.5px solid var(--border-md); border-radius:var(--r-sm);
+  background:var(--surface); color:var(--text); cursor:pointer;
+  transition:background 0.12s; box-shadow:var(--shadow);
+  white-space:nowrap; max-width:160px;
+}
+.profile-btn:hover { background:var(--surface2); }
+.profile-btn .caret { margin-left:2px; opacity:0.5; font-size:10px; transition:transform 0.15s; }
+.profile-wrap.open .caret { transform:rotate(180deg); }
+.profile-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.profile-menu {
+  display:none; position:absolute; bottom:calc(100% + 6px); left:0;
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.14);
+  min-width:190px; z-index:100; overflow:hidden;
+  padding:4px 0;
+}
+.profile-wrap.open .profile-menu { display:block; }
+
+.pm-item {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; font-size:13px; cursor:pointer;
+  color:var(--text-2); transition:background 0.1s;
+  white-space:nowrap;
+}
+.pm-item:hover { background:var(--surface2); color:var(--text); }
+.pm-item.active { color:var(--text); font-weight:500; }
+.pm-item .pm-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--text-3); flex-shrink:0;
+}
+.pm-item.active .pm-dot { background:var(--text); }
+.pm-item .pm-label { flex:1; overflow:hidden; text-overflow:ellipsis; }
+.pm-item .pm-actions { display:flex; gap:2px; opacity:0; transition:opacity 0.1s; }
+.pm-item:hover .pm-actions { opacity:1; }
+.pm-item .pm-del, .pm-item .pm-rename {
+  font-size:14px; line-height:1; color:var(--text-3);
+  padding:2px 3px; border:none; background:none; cursor:pointer;
+  font-family:inherit; transition:color 0.1s; border-radius:4px;
+}
+.pm-item .pm-del:hover { color:var(--danger); }
+.pm-item .pm-rename:hover { color:var(--text); }
+
+.pm-divider { height:0.5px; background:var(--border); margin:4px 0; }
+
+.pm-new {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; font-size:13px; cursor:pointer;
+  color:var(--text-2); transition:background 0.1s;
+}
+.pm-new:hover { background:var(--surface2); color:var(--text); }
+.pm-new-icon { font-size:16px; line-height:1; }
+
+/* ── Modals ── */
+#backdrop, #rename-backdrop {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.38);
+  align-items:center; justify-content:center; z-index:200;
+}
+#backdrop.open, #rename-backdrop.open { display:flex; }
+
+.modal {
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:16px; padding:1.5rem 1.75rem 1.75rem;
+  width:min(360px,92vw); display:flex; flex-direction:column; gap:14px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.18);
+}
+.modal h2 { font-size:15px; font-weight:500; }
+.modal label { font-size:11.5px; color:var(--text-2); display:block; margin-bottom:4px; }
+.modal input[type=text], .modal input[type=url] {
+  width:100%; padding:8px 10px;
+  font-family:inherit; font-size:13.5px;
+  border:0.5px solid var(--border-md); border-radius:var(--r-sm);
+  background:var(--surface2); color:var(--text); outline:none;
+  transition:border-color 0.12s;
+}
+.modal input:focus { border-color:var(--text); }
+.icon-row { display:flex; gap:8px; align-items:center; }
+.icon-row input { flex:1; }
+.icon-preview {
+  width:42px; height:42px; border-radius:10px; overflow:hidden;
+  flex-shrink:0; border:0.5px solid var(--border);
+  background:var(--surface2); display:flex; align-items:center; justify-content:center;
+}
+.icon-preview img { width:100%; height:100%; object-fit:contain; display:block; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:2px; }
+
+
+/* ── Toast ── */
+#toast {
+  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%);
+  background:var(--accent); color:var(--bg);
+  font-size:13px; padding:8px 20px; border-radius:99px;
+  opacity:0; pointer-events:none; transition:opacity 0.2s; z-index:500;
+  white-space:nowrap;
+}
+#toast.show { opacity:1; }
+
+#file-import { display:none; }
+
+/* ── Split export button ── */
+.split-wrap { position:relative; display:inline-flex; }
+.split-wrap .split-main { border-radius:var(--r-sm) 0 0 var(--r-sm); border-right:none; }
+.split-wrap .split-caret {
+  border-radius:0 var(--r-sm) var(--r-sm) 0; padding:7px 9px;
+  font-size:10px; border-left:0.5px solid var(--border);
+}
+.split-menu {
+  display:none; position:absolute; bottom:calc(100% + 6px); left:0;
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.14);
+  min-width:150px; z-index:100; overflow:hidden; padding:4px 0;
+}
+.split-wrap.open .split-menu { display:block; }
+.split-item {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; font-size:13px; cursor:pointer;
+  color:var(--text-2); transition:background 0.1s; white-space:nowrap;
+}
+.split-item:hover { background:var(--surface2); color:var(--text); }
+
+
+
+/* ── Network split button ── */
+.net-split { display:inline-flex; }
+.net-split .btn-l { border-radius:var(--r-sm) 0 0 var(--r-sm); border-right:none; }
+.net-split .btn-r { border-radius:0 var(--r-sm) var(--r-sm) 0; padding:7px 9px; font-size:10px; border-left:0.5px solid var(--border); }
+.pill {
+  width:26px; height:15px; border-radius:99px;
+  background:var(--text-3); position:relative; flex-shrink:0; transition:background 0.2s;
+}
+.pill::after {
+  content:''; position:absolute; top:2px; left:2px;
+  width:11px; height:11px; border-radius:50%;
+  background:#fff; transition:left 0.18s;
+}
+.pill.on { background:#6ee7b7; }
+.pill.on::after { left:13px; }
+
+/* ── Network map panel ── */
+#net-panel {
+  display:none; position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:min(500px, 96vw);
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r) var(--r) 0 0;
+  box-shadow:0 -4px 32px rgba(0,0,0,0.12);
+  z-index:150;
+}
+#net-panel.open { display:block; }
+.net-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-bottom:0.5px solid var(--border);
+}
+.net-panel-title { font-size:13px; font-weight:500; }
+.net-panel-sub { font-size:11px; color:var(--text-2); margin-top:2px; }
+.net-panel-close {
+  font-size:18px; line-height:1; color:var(--text-3); cursor:pointer;
+  background:none; border:none; font-family:inherit; padding:0 2px;
+}
+.net-panel-close:hover { color:var(--text); }
+.net-rows { max-height:260px; overflow-y:auto; }
+.net-row {
+  display:grid; grid-template-columns:1fr 20px 1fr 28px;
+  gap:8px; align-items:center; padding:9px 16px;
+  border-bottom:0.5px solid var(--border);
+}
+.net-inp {
+  width:100%; padding:6px 8px; font-size:12px; font-family:monospace;
+  border:0.5px solid var(--border-md); border-radius:var(--r-sm);
+  background:var(--surface2); color:var(--text); outline:none;
+  transition:border-color 0.12s;
+}
+.net-inp:focus { border-color:var(--text); }
+.net-arrow { font-size:11px; color:var(--text-3); text-align:center; }
+.net-del {
+  font-size:15px; color:var(--text-3); text-align:center; cursor:pointer;
+  background:none; border:none; font-family:inherit; line-height:1;
+}
+.net-del:hover { color:var(--danger); }
+.net-add-row {
+  padding:10px 16px; display:flex; align-items:center; gap:6px;
+  font-size:12.5px; color:var(--text-2); cursor:pointer;
+  border-top:0.5px solid var(--border);
+}
+.net-add-row:hover { color:var(--text); }
+
+@keyframes fadein {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.tile { animation:fadein 0.22s ease both; }
+body.no-animations .tile { animation:none !important; }
+
+/* ── Theme selector ── */
+.theme-wrap { position:relative; }
+.theme-menu {
+  display:none; position:absolute; bottom:calc(100% + 6px); right:0;
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.14);
+  min-width:200px; z-index:100; overflow:hidden; padding:8px 0;
+}
+.theme-wrap.open .theme-menu { display:block; }
+.theme-item {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; font-size:13px; cursor:pointer;
+  color:var(--text-2); transition:background 0.1s; white-space:nowrap;
+}
+.theme-item:hover { background:var(--surface2); color:var(--text); }
+.theme-item.active { color:var(--text); font-weight:500; }
+.theme-swatch {
+  width:14px; height:14px; border-radius:50%;
+  border:1.5px solid var(--border-md); flex-shrink:0;
+}
+.theme-divider { height:0.5px; background:var(--border); margin:6px 0; }
+.theme-colors {
+  display:grid; grid-template-columns:1fr 1fr; gap:6px;
+  padding:6px 14px;
+}
+.theme-color-field {
+  display:flex; align-items:center; gap:6px;
+}
+.theme-color-field label {
+  font-size:11px; color:var(--text-2); white-space:nowrap; min-width:50px;
+}
+.theme-color-field input[type=color] {
+  -webkit-appearance:none; appearance:none;
+  width:26px; height:26px; border:1.5px solid var(--border-md);
+  border-radius:6px; cursor:pointer; padding:2px; background:var(--surface2);
+}
+.theme-color-field input[type=color]::-webkit-color-swatch-wrapper { padding:0; }
+.theme-color-field input[type=color]::-webkit-color-swatch { border:none; border-radius:4px; }
+.theme-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 14px; font-size:13px; color:var(--text-2); cursor:pointer;
+}
+.theme-toggle:hover { color:var(--text); }
+.theme-toggle-switch {
+  width:28px; height:16px; border-radius:99px; position:relative;
+  background:var(--text-3); transition:background 0.2s;
+}
+.theme-toggle-switch::after {
+  content:''; position:absolute; top:2px; left:2px;
+  width:12px; height:12px; border-radius:50%;
+  background:#fff; transition:left 0.18s;
+}
+.theme-toggle-switch.on { background:var(--accent); }
+.theme-toggle-switch.on::after { left:14px; }
+</style>
+</head>
+<body>
+
+<div id="grid" role="list" aria-label="Shortcuts"></div>
+
+<div class="toolbar">
+
+  <!-- Profile picker -->
+  <div class="profile-wrap" id="profile-wrap">
+    <button class="profile-btn" id="profile-btn" aria-haspopup="true" aria-expanded="false">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="profile-name" id="profile-name-label">Default</span>
+      <span class="caret">▾</span>
+    </button>
+    <div class="profile-menu" id="profile-menu" role="menu"></div>
+  </div>
+
+
+  <!-- Network / TS split button -->
+  <div class="net-split" id="net-split">
+    <button class="btn btn-l" id="btn-net-toggle" aria-label="Toggle network mode">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><path d="M14 18h8M18 14v8"/></svg>
+      <span id="net-label">Local</span>
+      <div class="pill" id="net-pill"></div>
+    </button><button class="btn btn-r" id="btn-net-map" aria-label="Edit network map">&#9662;</button>
+  </div>
+
+  <!-- Import -->
+  <button class="btn" id="btn-import">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Import
+  </button>
+  <input type="file" id="file-import" accept=".json,application/json"/>
+
+  <!-- Export split button -->
+  <div class="split-wrap" id="export-wrap">
+    <button class="btn split-main" id="btn-export">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+    <button class="btn split-caret" id="btn-export-caret" aria-label="More export options" aria-haspopup="true" aria-expanded="false">&#9662;</button>
+    <div class="split-menu" id="export-menu" role="menu">
+      <div class="split-item" id="export-current" role="menuitem">This profile</div>
+      <div class="split-item" id="export-all" role="menuitem">All profiles</div>
+    </div>
+  </div>
+
+  <!-- Edit -->
+  <button class="btn" id="btn-edit">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Edit
+  </button>
+
+  <!-- Theme selector -->
+  <div class="theme-wrap" id="theme-wrap">
+    <button class="btn" id="btn-theme" aria-haspopup="true" aria-expanded="false" aria-label="Color scheme">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 0 0 14 4 4 0 0 1 0 8 10 10 0 0 0 0-20z" fill="currentColor" opacity="0.15"/><circle cx="8" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><circle cx="9" cy="14" r="1.5" fill="currentColor"/><circle cx="14" cy="13" r="1.5" fill="currentColor"/></svg>
+      Theme
+    </button>
+    <div class="theme-menu" id="theme-menu" role="menu"></div>
+  </div>
+
+  <button class="btn btn-primary" id="btn-done" style="display:none">Done</button>
+</div>
+
+<!-- Tile add/edit modal -->
+<div id="backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Add shortcut</h2>
+    <div>
+      <label for="inp-name">Name</label>
+      <input id="inp-name" type="text" placeholder="e.g. DuckDuckGo" autocomplete="off"/>
+    </div>
+    <div>
+      <label for="inp-url">URL</label>
+      <input id="inp-url" type="url" placeholder="https://example.com" autocomplete="off"/>
+    </div>
+    <div>
+      <label for="inp-icon">Custom icon URL <span style="color:var(--text-3);font-size:11px">(optional)</span></label>
+      <div class="icon-row">
+        <input id="inp-icon" type="url" placeholder="Leave blank to auto-fetch favicon"/>
+        <div class="icon-preview">
+          <img id="icon-preview-img" src="" alt="" style="display:none"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="modal-save">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename / new profile modal -->
+<div id="rename-backdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rename-title">
+    <h2 id="rename-title">New profile</h2>
+    <div>
+      <label for="inp-profile-name">Profile name</label>
+      <input id="inp-profile-name" type="text" placeholder="e.g. Work" autocomplete="off"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="rename-cancel">Cancel</button>
+      <button class="btn btn-primary" id="rename-save">Create</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Network map panel -->
+<div id="net-panel" role="dialog" aria-labelledby="net-panel-title">
+  <div class="net-panel-header">
+    <div>
+      <div class="net-panel-title" id="net-panel-title">Network map</div>
+      <div class="net-panel-sub">Local = direct IPs &middot; TS = Tailscale hostnames</div>
+    </div>
+    <button class="net-panel-close" id="btn-net-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="net-rows" id="net-rows"></div>
+  <div class="net-add-row" id="btn-net-add">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add address pair
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   Start Page — Application Logic
+   ─────────────────────────────────────────────────────
+   Sections:
+     1. Utilities (toast, slugify, export helper)
+     2. Storage (load/save localStorage)
+     3. State (store, active profile, nextId)
+     4. Network map (rewrite logic + panel UI)
+     5. Theme system (per-profile color schemes)
+     6. Rendering (grid, tiles, profile menu)
+     7. Profile management (switch, create, rename, delete)
+     8. Tile modal (add/edit shortcuts)
+     9. Edit mode
+    10. Import / Export
+    11. Initialization
+═══════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════
+   1. UTILITIES
+══════════════════════════════════════ */
+
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 32) || 'profile';
+}
+
+function uniqueSlug(base) {
+  let s = base, n = 2;
+  while (store.profiles[s]) s = base + '-' + (n++);
+  return s;
+}
+
+function faviconFor(url) {
+  try {
+    const origin = new URL(url).origin;
+    return `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(origin)}&size=128`;
+  } catch { return ''; }
+}
+
+function doExport(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob), download: filename
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ══════════════════════════════════════
+   2. STORAGE
+══════════════════════════════════════ */
+
+const STORE_KEY = 'start_profiles';
+const DEFAULT_SLUG = 'default';
+const DEFAULT_TILES = [
+  { id: 1, name: "DuckDuckGo", url: "https://noai.duckduckgo.com" }
+];
+
+let _storageAvailable = true;
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    _storageAvailable = false;
+    console.warn('localStorage unavailable — changes won\'t persist.', e);
+  }
+  return null;
+}
+
+function saveStore() {
+  if (!_storageAvailable) return;
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  } catch (e) {
+    _storageAvailable = false;
+    console.warn('localStorage write failed:', e);
+  }
+}
+
+/* ══════════════════════════════════════
+   3. STATE
+══════════════════════════════════════ */
+
+let store = loadStore();
+if (!store || !store.profiles || Object.keys(store.profiles).length === 0) {
+  store = {
+    profiles: {
+      [DEFAULT_SLUG]: { name: 'Default', tiles: JSON.parse(JSON.stringify(DEFAULT_TILES)) }
+    }
+  };
+  saveStore();
+}
+
+function getUrlProfile() {
+  return new URLSearchParams(window.location.search).get('p');
+}
+function setUrlProfile(slug) {
+  const u = new URL(window.location.href);
+  u.searchParams.set('p', slug);
+  window.history.replaceState(null, '', u.toString());
+}
+
+function resolveActiveSlug() {
+  const param = getUrlProfile();
+  if (param && store.profiles[param]) return param;
+  const first = Object.keys(store.profiles)[0];
+  setUrlProfile(first);
+  return first;
+}
+
+let activeSlug = resolveActiveSlug();
+let nextId = Object.values(store.profiles)
+  .flatMap(p => p.tiles)
+  .reduce((m, t) => Math.max(m, t.id || 0), 0) + 1;
+let editingTileId = null;
+let renameMode = null;
+let renameSlug = null;
+
+function activeProfile() { return store.profiles[activeSlug]; }
+
+/* ══════════════════════════════════════
+   4. NETWORK MAP
+══════════════════════════════════════ */
+
+function getUrlNet() {
+  return new URLSearchParams(window.location.search).get('net') || 'local';
+}
+function setUrlNet(val) {
+  const u = new URL(window.location.href);
+  u.searchParams.set('net', val);
+  window.history.replaceState(null, '', u.toString());
+}
+
+let netMode = getUrlNet();
+
+function netMap() {
+  return activeProfile().netMap || (activeProfile().netMap = []);
+}
+
+// Initialize from max existing ID to prevent collisions
+let netMapNextId = Object.values(store.profiles)
+  .flatMap(p => p.netMap || [])
+  .reduce((m, pair) => Math.max(m, pair.id || 0), 999) + 1;
+
+function rewriteUrl(url) {
+  const map = netMap();
+  if (!map.length) return url;
+  let result = url;
+  for (const pair of map) {
+    if (!pair.local || !pair.ts) continue;
+    if (netMode === 'local') {
+      result = result.split(pair.ts).join(pair.local);
+    } else {
+      result = result.split(pair.local).join(pair.ts);
+    }
+  }
+  return result;
+}
+
+function updateNetButton() {
+  const isTS = netMode === 'ts';
+  document.getElementById('net-pill').className = 'pill' + (isTS ? ' on' : '');
+  document.getElementById('net-label').textContent = isTS ? 'TS' : 'Local';
+}
+
+function openNetPanel() {
+  renderNetRows();
+  netPanel.classList.add('open');
+  document.getElementById('btn-net-map').setAttribute('aria-expanded', 'true');
+}
+
+function closeNetPanel() {
+  netPanel.classList.remove('open');
+  document.getElementById('btn-net-map').setAttribute('aria-expanded', 'false');
+}
+
+function renderNetRows() {
+  const map = netMap();
+  const container = document.getElementById('net-rows');
+  container.innerHTML = '';
+  if (!map.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:14px 16px;font-size:12.5px;color:var(--text-3);text-align:center';
+    empty.textContent = 'No address pairs yet';
+    container.appendChild(empty);
+    return;
+  }
+  map.forEach(pair => {
+    const row = document.createElement('div');
+    row.className = 'net-row';
+    const localInp = document.createElement('input');
+    localInp.className = 'net-inp'; localInp.type = 'text';
+    localInp.value = pair.local || ''; localInp.placeholder = '192.168.0.x';
+    localInp.addEventListener('change', () => { pair.local = localInp.value.trim(); saveStore(); });
+    const arrow = document.createElement('div');
+    arrow.className = 'net-arrow'; arrow.textContent = '↔';
+    const tsInp = document.createElement('input');
+    tsInp.className = 'net-inp'; tsInp.type = 'text';
+    tsInp.value = pair.ts || ''; tsInp.placeholder = 'hostname';
+    tsInp.addEventListener('change', () => { pair.ts = tsInp.value.trim(); saveStore(); });
+    const del = document.createElement('button');
+    del.className = 'net-del'; del.textContent = '×';
+    del.setAttribute('aria-label', 'Remove pair');
+    del.addEventListener('click', () => {
+      activeProfile().netMap = netMap().filter(p => p.id !== pair.id);
+      saveStore(); renderNetRows();
+    });
+    row.append(localInp, arrow, tsInp, del);
+    container.appendChild(row);
+  });
+}
+
+const netPanel = document.getElementById('net-panel');
+
+document.getElementById('btn-net-toggle').addEventListener('click', () => {
+  netMode = netMode === 'local' ? 'ts' : 'local';
+  setUrlNet(netMode);
+  updateNetButton();
+});
+
+document.getElementById('btn-net-map').addEventListener('click', e => {
+  e.stopPropagation();
+  netPanel.classList.contains('open') ? closeNetPanel() : openNetPanel();
+});
+
+document.getElementById('btn-net-close').addEventListener('click', closeNetPanel);
+
+document.getElementById('btn-net-add').addEventListener('click', () => {
+  netMap().push({ id: netMapNextId++, local: '', ts: '' });
+  saveStore(); renderNetRows();
+  const inputs = document.getElementById('net-rows').querySelectorAll('.net-inp');
+  if (inputs.length) inputs[inputs.length - 2].focus();
+});
+
+/* ══════════════════════════════════════
+   5. THEME SYSTEM (per-profile)
+══════════════════════════════════════ */
+
+const THEME_PRESETS = {
+  light: { bg: '#f5f4f0', surface: '#ffffff', text: '#1c1c1a', muted: '#888880', accent: '#1c1c1a' },
+  dark:  { bg: '#141413', surface: '#1e1e1c', text: '#eeeee8', muted: '#77776e', accent: '#eeeee8' },
+};
+
+const CUSTOM_DEFAULTS = { bg: '#f5f4f0', surface: '#ffffff', text: '#1c1c1a', muted: '#888880', accent: '#1c1c1a' };
+
+function luminance(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function blendColor(hex1, hex2, t) {
+  const r1 = parseInt(hex1.slice(1, 3), 16), g1 = parseInt(hex1.slice(3, 5), 16), b1 = parseInt(hex1.slice(5, 7), 16);
+  const r2 = parseInt(hex2.slice(1, 3), 16), g2 = parseInt(hex2.slice(3, 5), 16), b2 = parseInt(hex2.slice(5, 7), 16);
+  const r = Math.round(r1 + (r2 - r1) * t), g = Math.round(g1 + (g2 - g1) * t), b = Math.round(b1 + (b2 - b1) * t);
+  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+function deriveVars(c) {
+  const isDark = luminance(c.bg) < 0.4;
+  return {
+    '--bg': c.bg,
+    '--surface': c.surface,
+    '--surface2': blendColor(c.surface, isDark ? '#ffffff' : '#000000', 0.06),
+    '--border': isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)',
+    '--border-md': isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.15)',
+    '--text': c.text,
+    '--text-2': c.muted,
+    '--text-3': blendColor(c.muted, c.bg, 0.45),
+    '--accent': c.accent,
+    '--shadow': isDark
+      ? '0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25)'
+      : '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
+  };
+}
+
+function getProfileTheme() {
+  return activeProfile().theme || 'system';
+}
+
+function getProfileColors() {
+  return activeProfile().themeColors || { ...CUSTOM_DEFAULTS };
+}
+
+function getProfileAnimations() {
+  return activeProfile().animations !== false; // default true
+}
+
+function applyAnimations(on) {
+  document.body.classList.toggle('no-animations', !on);
+}
+
+function applyTheme(id, colors) {
+  activeProfile().theme = id;
+  if (id === 'custom' && colors) activeProfile().themeColors = { ...colors };
+  saveStore();
+  applyThemeVars(id, id === 'custom' ? (colors || getProfileColors()) : null);
+}
+
+function applyThemeVars(id, colors) {
+  const root = document.documentElement;
+  const allVars = ['--bg', '--surface', '--surface2', '--border', '--border-md', '--text', '--text-2', '--text-3', '--accent', '--shadow'];
+  allVars.forEach(v => root.style.removeProperty(v));
+  if (id === 'system') return;
+  const vars = id === 'custom'
+    ? deriveVars(colors || getProfileColors())
+    : deriveVars(THEME_PRESETS[id]);
+  Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+}
+
+function renderThemeMenu() {
+  const menu = document.getElementById('theme-menu');
+  menu.innerHTML = '';
+  const cur = getProfileTheme();
+
+  const presets = [
+    { id: 'system', label: 'System', swatch: 'linear-gradient(135deg, #f5f4f0 50%, #141413 50%)' },
+    { id: 'light',  label: 'Light',  swatch: '#f5f4f0' },
+    { id: 'dark',   label: 'Dark',   swatch: '#141413' },
+  ];
+  presets.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'theme-item' + (cur === p.id ? ' active' : '');
+    item.setAttribute('role', 'menuitem');
+    const swatch = document.createElement('div');
+    swatch.className = 'theme-swatch';
+    swatch.style.background = p.swatch;
+    const label = document.createElement('span');
+    label.textContent = p.label;
+    item.append(swatch, label);
+    item.addEventListener('click', () => { applyTheme(p.id); renderThemeMenu(); });
+    menu.appendChild(item);
+  });
+
+  // Custom theme option
+  const customItem = document.createElement('div');
+  customItem.className = 'theme-item' + (cur === 'custom' ? ' active' : '');
+  customItem.setAttribute('role', 'menuitem');
+  const cSwatch = document.createElement('div');
+  cSwatch.className = 'theme-swatch';
+  const cc = getProfileColors();
+  cSwatch.style.background = cc.accent;
+  const cLabel = document.createElement('span');
+  cLabel.textContent = 'Custom';
+  customItem.append(cSwatch, cLabel);
+  customItem.addEventListener('click', () => { applyTheme('custom', getProfileColors()); renderThemeMenu(); });
+  menu.appendChild(customItem);
+
+  // Color pickers shown when custom is active
+  if (cur === 'custom') {
+    const divider = document.createElement('div');
+    divider.className = 'theme-divider';
+    menu.appendChild(divider);
+
+    const grid = document.createElement('div');
+    grid.className = 'theme-colors';
+    const fields = [
+      { key: 'bg',      label: 'BG' },
+      { key: 'surface', label: 'Surface' },
+      { key: 'text',    label: 'Text' },
+      { key: 'muted',   label: 'Muted' },
+      { key: 'accent',  label: 'Accent' },
+    ];
+    const colors = getProfileColors();
+    fields.forEach(f => {
+      const wrap = document.createElement('div');
+      wrap.className = 'theme-color-field';
+      const lbl = document.createElement('label');
+      lbl.textContent = f.label;
+      const inp = document.createElement('input');
+      inp.type = 'color'; inp.value = colors[f.key];
+      inp.addEventListener('input', () => {
+        colors[f.key] = inp.value;
+        applyTheme('custom', colors);
+        cSwatch.style.background = colors.accent;
+      });
+      wrap.append(lbl, inp);
+      grid.appendChild(wrap);
+    });
+    menu.appendChild(grid);
+  }
+
+  // Animation toggle
+  const divider2 = document.createElement('div');
+  divider2.className = 'theme-divider';
+  menu.appendChild(divider2);
+
+  const toggle = document.createElement('div');
+  toggle.className = 'theme-toggle';
+  const toggleLabel = document.createElement('span');
+  toggleLabel.textContent = 'Animations';
+  const toggleSwitch = document.createElement('div');
+  toggleSwitch.className = 'theme-toggle-switch' + (getProfileAnimations() ? ' on' : '');
+  toggle.append(toggleLabel, toggleSwitch);
+  toggle.addEventListener('click', () => {
+    const newVal = !getProfileAnimations();
+    activeProfile().animations = newVal;
+    saveStore();
+    applyAnimations(newVal);
+    toggleSwitch.className = 'theme-toggle-switch' + (newVal ? ' on' : '');
+  });
+  menu.appendChild(toggle);
+}
+
+const themeWrap = document.getElementById('theme-wrap');
+
+function closeThemeMenu() {
+  themeWrap.classList.remove('open');
+  document.getElementById('btn-theme').setAttribute('aria-expanded', 'false');
+}
+
+document.getElementById('btn-theme').addEventListener('click', e => {
+  e.stopPropagation();
+  if (themeWrap.classList.contains('open')) {
+    closeThemeMenu();
+  } else {
+    renderThemeMenu();
+    themeWrap.classList.add('open');
+    document.getElementById('btn-theme').setAttribute('aria-expanded', 'true');
+  }
+});
+
+/* ══════════════════════════════════════
+   6. RENDERING
+══════════════════════════════════════ */
+
+function makeTile(tile, idx) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tile';
+  wrap.setAttribute('role', 'listitem');
+  wrap.setAttribute('tabindex', '0');
+  wrap.style.animationDelay = (idx * 28) + 'ms';
+
+  const src = tile.icon || faviconFor(tile.url);
+  if (src) {
+    const img = document.createElement('img');
+    img.className = 'tile-img';
+    img.src = src; img.alt = tile.name; img.loading = 'lazy';
+    img.onerror = () => {
+      const fb = document.createElement('div');
+      fb.className = 'tile-fallback';
+      fb.textContent = tile.name[0];
+      img.replaceWith(fb);
+    };
+    // Fall back to letter if icon is too small (would look blurry)
+    img.onload = () => {
+      if (img.naturalWidth < 48 && !tile.icon) {
+        const fb = document.createElement('div');
+        fb.className = 'tile-fallback';
+        fb.textContent = tile.name[0];
+        img.replaceWith(fb);
+      }
+    };
+    wrap.appendChild(img);
+  } else {
+    const fb = document.createElement('div');
+    fb.className = 'tile-fallback';
+    fb.textContent = tile.name[0];
+    wrap.appendChild(fb);
+  }
+
+  const lbl = document.createElement('span');
+  lbl.className = 'tile-label'; lbl.textContent = tile.name;
+  wrap.appendChild(lbl);
+
+  const del = document.createElement('button');
+  del.className = 'del-btn'; del.textContent = '×';
+  del.setAttribute('aria-label', `Remove ${tile.name}`);
+  del.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    activeProfile().tiles = activeProfile().tiles.filter(t => t.id !== tile.id);
+    saveStore(); render();
+  });
+  wrap.appendChild(del);
+
+  // Drag-and-drop reordering (edit mode only)
+  wrap.setAttribute('draggable', 'false');
+  wrap.dataset.tileId = tile.id;
+
+  wrap.addEventListener('dragstart', e => {
+    if (!document.body.classList.contains('editing')) { e.preventDefault(); return; }
+    wrap.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', tile.id);
+    dragSrcId = tile.id;
+  });
+  wrap.addEventListener('dragend', () => {
+    wrap.classList.remove('dragging');
+    document.querySelectorAll('.tile.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragSrcId = null;
+  });
+  wrap.addEventListener('dragover', e => {
+    if (dragSrcId == null || tile.id === dragSrcId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    wrap.classList.add('drag-over');
+  });
+  wrap.addEventListener('dragleave', () => {
+    wrap.classList.remove('drag-over');
+  });
+  wrap.addEventListener('drop', e => {
+    e.preventDefault();
+    wrap.classList.remove('drag-over');
+    if (dragSrcId == null || tile.id === dragSrcId) return;
+    const tiles = activeProfile().tiles;
+    const fromIdx = tiles.findIndex(t => t.id === dragSrcId);
+    const toIdx = tiles.findIndex(t => t.id === tile.id);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = tiles.splice(fromIdx, 1);
+    tiles.splice(toIdx, 0, moved);
+    saveStore(); render();
+  });
+
+  wrap.addEventListener('click', () => {
+    if (document.body.classList.contains('editing')) openTileModal(tile.id);
+    else window.open(rewriteUrl(tile.url), '_blank', 'noopener');
+  });
+  wrap.addEventListener('keydown', e => { if (e.key === 'Enter') wrap.click(); });
+  return wrap;
+}
+
+let dragSrcId = null;
+
+function render() {
+  const p = activeProfile();
+  document.title = p.name + ' — Start';
+  document.getElementById('profile-name-label').textContent = p.name;
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  p.tiles.forEach((tile, i) => grid.appendChild(makeTile(tile, i)));
+
+  // "+ Add" tile
+  const add = document.createElement('div');
+  add.className = 'tile tile-add';
+  add.setAttribute('role', 'button'); add.setAttribute('tabindex', '0');
+  add.setAttribute('aria-label', 'Add shortcut');
+  add.style.animationDelay = (p.tiles.length * 28) + 'ms';
+  const fb = document.createElement('div');
+  fb.className = 'tile-fallback'; fb.textContent = '+'; fb.setAttribute('aria-hidden', 'true');
+  const lbl = document.createElement('span');
+  lbl.className = 'tile-label'; lbl.textContent = 'Add';
+  add.append(fb, lbl);
+  add.addEventListener('click', () => openTileModal(null));
+  add.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openTileModal(null); });
+  grid.appendChild(add);
+}
+
+function renderProfileMenu() {
+  const menu = document.getElementById('profile-menu');
+  menu.innerHTML = '';
+
+  Object.entries(store.profiles).forEach(([slug, prof]) => {
+    const item = document.createElement('div');
+    item.className = 'pm-item' + (slug === activeSlug ? ' active' : '');
+    item.setAttribute('role', 'menuitem');
+
+    const dot = document.createElement('span'); dot.className = 'pm-dot';
+    const label = document.createElement('span'); label.className = 'pm-label'; label.textContent = prof.name;
+
+    const actions = document.createElement('div');
+    actions.className = 'pm-actions';
+
+    const renameBtn = document.createElement('button');
+    renameBtn.className = 'pm-rename'; renameBtn.textContent = '✎';
+    renameBtn.setAttribute('aria-label', `Rename ${prof.name}`);
+    renameBtn.title = 'Rename';
+    renameBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      closeProfileMenu();
+      openRenameModal('rename', slug);
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'pm-del'; delBtn.textContent = '×';
+    delBtn.setAttribute('aria-label', `Delete ${prof.name}`);
+    delBtn.title = 'Delete';
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const slugs = Object.keys(store.profiles);
+      if (slugs.length <= 1) { toast("Can't delete the only profile"); return; }
+      if (!confirm(`Delete profile "${prof.name}"?`)) return;
+      delete store.profiles[slug];
+      saveStore();
+      if (activeSlug === slug) switchProfile(Object.keys(store.profiles)[0]);
+      else renderProfileMenu();
+    });
+
+    actions.append(renameBtn, delBtn);
+    item.append(dot, label, actions);
+    item.addEventListener('click', () => { closeProfileMenu(); switchProfile(slug); });
+    menu.appendChild(item);
+  });
+
+  const div = document.createElement('div'); div.className = 'pm-divider';
+  menu.appendChild(div);
+
+  const newItem = document.createElement('div');
+  newItem.className = 'pm-new'; newItem.setAttribute('role', 'menuitem');
+  newItem.innerHTML = '<span class="pm-new-icon" aria-hidden="true">+</span><span>New profile</span>';
+  newItem.addEventListener('click', () => { closeProfileMenu(); openRenameModal('new'); });
+  menu.appendChild(newItem);
+}
+
+/* ══════════════════════════════════════
+   7. PROFILE MANAGEMENT
+══════════════════════════════════════ */
+
+function switchProfile(slug) {
+  if (!store.profiles[slug]) return;
+  activeSlug = slug;
+  setUrlProfile(slug);
+  document.body.classList.remove('editing');
+  document.getElementById('btn-edit').style.display = '';
+  document.getElementById('btn-done').style.display = 'none';
+  const t = getProfileTheme();
+  applyThemeVars(t, t === 'custom' ? getProfileColors() : null);
+  applyAnimations(getProfileAnimations());
+  renderProfileMenu();
+  render();
+}
+
+const profileWrap = document.getElementById('profile-wrap');
+const profileBtn = document.getElementById('profile-btn');
+
+function closeProfileMenu() {
+  profileWrap.classList.remove('open');
+  profileBtn.setAttribute('aria-expanded', 'false');
+}
+
+profileBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (profileWrap.classList.contains('open')) {
+    closeProfileMenu();
+  } else {
+    renderProfileMenu();
+    profileWrap.classList.add('open');
+    profileBtn.setAttribute('aria-expanded', 'true');
+  }
+});
+
+function openRenameModal(mode, slug) {
+  renameMode = mode;
+  renameSlug = slug || activeSlug;
+  const prof = store.profiles[renameSlug];
+  document.getElementById('rename-title').textContent = mode === 'new' ? 'New profile' : 'Rename profile';
+  document.getElementById('rename-save').textContent = mode === 'new' ? 'Create' : 'Rename';
+  document.getElementById('inp-profile-name').value = mode === 'new' ? '' : (prof ? prof.name : '');
+  document.getElementById('rename-backdrop').classList.add('open');
+  setTimeout(() => document.getElementById('inp-profile-name').focus(), 50);
+}
+
+function closeRenameModal() {
+  document.getElementById('rename-backdrop').classList.remove('open');
+  renameMode = null;
+}
+
+document.getElementById('rename-cancel').addEventListener('click', closeRenameModal);
+document.getElementById('rename-backdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('rename-backdrop')) closeRenameModal();
+});
+document.getElementById('inp-profile-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('rename-save').click();
+});
+document.getElementById('rename-save').addEventListener('click', () => {
+  const name = document.getElementById('inp-profile-name').value.trim();
+  if (!name) { toast('Enter a profile name'); return; }
+  if (renameMode === 'new') {
+    const slug = uniqueSlug(slugify(name));
+    store.profiles[slug] = { name, tiles: [] };
+    saveStore();
+    closeRenameModal();
+    switchProfile(slug);
+    toast(`Profile "${name}" created`);
+  } else {
+    store.profiles[renameSlug].name = name;
+    saveStore();
+    closeRenameModal();
+    render();
+    renderProfileMenu();
+    toast('Profile renamed');
+  }
+});
+
+/* ══════════════════════════════════════
+   8. TILE MODAL
+══════════════════════════════════════ */
+
+function showPreview(src) {
+  const img = document.getElementById('icon-preview-img');
+  img.src = src || ''; img.style.display = src ? 'block' : 'none';
+}
+
+function openTileModal(id) {
+  editingTileId = id;
+  const tile = id != null ? activeProfile().tiles.find(t => t.id === id) : null;
+  document.getElementById('modal-title').textContent = tile ? 'Edit shortcut' : 'Add shortcut';
+  document.getElementById('modal-save').textContent = tile ? 'Save' : 'Add';
+  document.getElementById('inp-name').value = tile?.name || '';
+  document.getElementById('inp-url').value = tile?.url || '';
+  document.getElementById('inp-icon').value = tile?.icon || '';
+  showPreview(tile?.icon || (tile ? faviconFor(tile.url) : ''));
+  document.getElementById('backdrop').classList.add('open');
+  setTimeout(() => document.getElementById('inp-name').focus(), 50);
+}
+
+function closeTileModal() {
+  document.getElementById('backdrop').classList.remove('open');
+  editingTileId = null;
+}
+
+document.getElementById('inp-url').addEventListener('input', () => {
+  if (!document.getElementById('inp-icon').value)
+    showPreview(faviconFor(document.getElementById('inp-url').value.trim()));
+});
+document.getElementById('inp-icon').addEventListener('input', () => {
+  showPreview(document.getElementById('inp-icon').value.trim());
+});
+document.getElementById('modal-cancel').addEventListener('click', closeTileModal);
+document.getElementById('backdrop').addEventListener('click', e => {
+  if (e.target === document.getElementById('backdrop')) closeTileModal();
+});
+document.getElementById('inp-url').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('modal-save').click();
+});
+document.getElementById('modal-save').addEventListener('click', () => {
+  let name = document.getElementById('inp-name').value.trim();
+  let url = document.getElementById('inp-url').value.trim();
+  let icon = document.getElementById('inp-icon').value.trim() || undefined;
+  if (!name || !url) { toast('Name and URL are required'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  if (editingTileId != null) {
+    const t = activeProfile().tiles.find(t => t.id === editingTileId);
+    if (t) { t.name = name; t.url = url; t.icon = icon; }
+  } else {
+    activeProfile().tiles.push({ id: nextId++, name, url, icon });
+  }
+  saveStore(); closeTileModal(); render();
+});
+
+/* ══════════════════════════════════════
+   9. EDIT MODE
+══════════════════════════════════════ */
+
+function setTilesDraggable(on) {
+  document.querySelectorAll('.tile:not(.tile-add)').forEach(el => {
+    el.setAttribute('draggable', on ? 'true' : 'false');
+  });
+}
+
+document.getElementById('btn-edit').addEventListener('click', () => {
+  document.body.classList.add('editing');
+  document.getElementById('btn-edit').style.display = 'none';
+  document.getElementById('btn-done').style.display = '';
+  setTilesDraggable(true);
+});
+document.getElementById('btn-done').addEventListener('click', () => {
+  document.body.classList.remove('editing');
+  document.getElementById('btn-edit').style.display = '';
+  document.getElementById('btn-done').style.display = 'none';
+  setTilesDraggable(false);
+});
+
+/* ══════════════════════════════════════
+   10. IMPORT / EXPORT
+══════════════════════════════════════ */
+
+const exportWrap = document.getElementById('export-wrap');
+const exportCaret = document.getElementById('btn-export-caret');
+
+function closeExportMenu() {
+  exportWrap.classList.remove('open');
+  exportCaret.setAttribute('aria-expanded', 'false');
+}
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  doExport({ profile: activeProfile() }, slugify(activeProfile().name) + '-config.json');
+  toast('Exported "' + activeProfile().name + '" ✓');
+});
+exportCaret.addEventListener('click', e => {
+  e.stopPropagation();
+  if (exportWrap.classList.contains('open')) closeExportMenu();
+  else { exportWrap.classList.add('open'); exportCaret.setAttribute('aria-expanded', 'true'); }
+});
+document.getElementById('export-current').addEventListener('click', () => {
+  closeExportMenu();
+  doExport({ profile: activeProfile() }, slugify(activeProfile().name) + '-config.json');
+  toast('Exported "' + activeProfile().name + '" ✓');
+});
+document.getElementById('export-all').addEventListener('click', () => {
+  closeExportMenu();
+  const count = Object.keys(store.profiles).length;
+  doExport({ version: 2, profiles: store.profiles }, 'all-profiles-config.json');
+  toast('Exported ' + count + ' profile' + (count !== 1 ? 's' : '') + ' ✓');
+});
+
+document.getElementById('btn-import').addEventListener('click', () =>
+  document.getElementById('file-import').click()
+);
+document.getElementById('file-import').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imp = JSON.parse(ev.target.result);
+
+      // All-profiles format { version:2, profiles:{...} }
+      if (imp.version === 2 && imp.profiles && typeof imp.profiles === 'object') {
+        const incoming = Object.entries(imp.profiles);
+        const conflicts = incoming.filter(([slug]) => store.profiles[slug]);
+        const news = incoming.filter(([slug]) => !store.profiles[slug]);
+        let msg = 'Import ' + incoming.length + ' profile' + (incoming.length !== 1 ? 's' : '') + '?';
+        if (conflicts.length) msg += '\n\nWill overwrite: ' + conflicts.map(([, p]) => '"' + p.name + '"').join(', ') + '.';
+        if (news.length) msg += '\n\nWill add new: ' + news.map(([, p]) => '"' + p.name + '"').join(', ') + '.';
+        if (!confirm(msg)) return;
+        for (const [slug, prof] of incoming) store.profiles[slug] = prof;
+        nextId = Object.values(store.profiles)
+          .flatMap(p => p.tiles)
+          .reduce((m, t) => Math.max(m, t.id || 0), 0) + 1;
+        saveStore();
+        switchProfile(incoming[0][0]);
+        renderProfileMenu();
+        toast('Imported ' + incoming.length + ' profile' + (incoming.length !== 1 ? 's' : '') + ' ✓');
+        return;
+      }
+
+      // Single-profile format { profile:{name,tiles,...} } or legacy {tiles:[]}
+      let importedProfile;
+      if (imp.profile && Array.isArray(imp.profile.tiles)) {
+        importedProfile = imp.profile;
+      } else if (Array.isArray(imp.tiles)) {
+        importedProfile = { name: null, tiles: imp.tiles };
+      } else throw new Error('Unrecognised format');
+
+      const importedName = importedProfile.name;
+      const importedTiles = importedProfile.tiles;
+
+      // Build a full profile object preserving theme/netMap/animations
+      function buildProfile(name, base) {
+        const p = { name, tiles: base.tiles };
+        if (base.theme) p.theme = base.theme;
+        if (base.themeColors) p.themeColors = base.themeColors;
+        if (base.animations !== undefined) p.animations = base.animations;
+        if (base.netMap) p.netMap = base.netMap;
+        return p;
+      }
+
+      if (importedName && importedName !== activeProfile().name) {
+        const createNew = confirm(
+          'The file contains a profile named "' + importedName + '".\n\n' +
+          'OK → add as a new profile\n' +
+          'Cancel → overwrite current profile ("' + activeProfile().name + '")'
+        );
+        if (createNew) {
+          const slug = uniqueSlug(slugify(importedName));
+          store.profiles[slug] = buildProfile(importedName, importedProfile);
+          saveStore(); switchProfile(slug);
+          toast('Imported as new profile "' + importedName + '" ✓');
+        } else {
+          if (!confirm('Overwrite ' + activeProfile().tiles.length + ' shortcut(s) in "' + activeProfile().name + '"?')) return;
+          Object.assign(activeProfile(), buildProfile(activeProfile().name, importedProfile));
+          nextId = importedTiles.reduce((m, t) => Math.max(m, t.id || 0), 0) + 1;
+          saveStore();
+          const t = getProfileTheme();
+          applyThemeVars(t, t === 'custom' ? getProfileColors() : null);
+          applyAnimations(getProfileAnimations());
+          render();
+          toast('Imported ' + importedTiles.length + ' shortcuts ✓');
+        }
+      } else {
+        const cur = activeProfile().tiles.length;
+        const msg = cur > 0
+          ? 'Replace ' + cur + ' shortcut' + (cur !== 1 ? 's' : '') + ' in "' + activeProfile().name + '" with ' + importedTiles.length + ' from the file?'
+          : 'Import ' + importedTiles.length + ' shortcut' + (importedTiles.length !== 1 ? 's' : '') + ' into "' + activeProfile().name + '"?';
+        if (!confirm(msg)) return;
+        Object.assign(activeProfile(), buildProfile(activeProfile().name, importedProfile));
+        nextId = importedTiles.reduce((m, t) => Math.max(m, t.id || 0), 0) + 1;
+        saveStore();
+        const t = getProfileTheme();
+        applyThemeVars(t, t === 'custom' ? getProfileColors() : null);
+        applyAnimations(getProfileAnimations());
+        render();
+        toast('Imported ' + importedTiles.length + ' shortcuts ✓');
+      }
+    } catch (err) { toast('Import failed: ' + err.message); }
+  };
+  reader.readAsText(file); e.target.value = '';
+});
+
+/* ══════════════════════════════════════
+   11. GLOBAL EVENT HANDLERS & INIT
+══════════════════════════════════════ */
+
+// Consolidated click-outside handler
+document.addEventListener('click', e => {
+  if (!profileWrap.contains(e.target)) closeProfileMenu();
+  if (!exportWrap.contains(e.target)) closeExportMenu();
+  if (!themeWrap.contains(e.target)) closeThemeMenu();
+  if (netPanel.classList.contains('open') && !netPanel.contains(e.target) && e.target !== document.getElementById('btn-net-map'))
+    closeNetPanel();
+});
+
+// Consolidated escape handler
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeProfileMenu();
+    closeExportMenu();
+    closeThemeMenu();
+    closeTileModal();
+    closeRenameModal();
+  }
+});
+
+// Boot
+updateNetButton();
+applyThemeVars(getProfileTheme(), getProfileTheme() === 'custom' ? getProfileColors() : null);
+applyAnimations(getProfileAnimations());
+render();
+</script>
+</body>
+</html>
+
