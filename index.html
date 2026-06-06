@@ -47,8 +47,27 @@ html, body {
 }
 body {
   display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:3rem 1.5rem; gap:2.5rem;
+  align-items:center;
+  min-height:100vh; margin:0;
+  padding:0 1.5rem;
+}
+
+/* ── Layout sections ── */
+.header {
+  position:sticky; top:0; z-index:50;
+  width:100%; display:flex; justify-content:center;
+  padding:1.25rem 0 1rem;
+  background:var(--bg);
+}
+.content {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  width:100%; padding:1rem 0;
+}
+.footer {
+  position:sticky; bottom:0; z-index:50;
+  width:100%; display:flex; justify-content:center;
+  padding:1rem 0 1.25rem;
+  background:var(--bg);
 }
 
 /* ── Grid ── */
@@ -399,12 +418,118 @@ body.no-animations .tile { animation:none !important; }
 }
 .theme-toggle-switch.on { background:var(--accent); }
 .theme-toggle-switch.on::after { left:14px; }
+
+/* ── Search bar ── */
+.search-wrap {
+  display:flex; align-items:center; gap:0;
+  max-width:560px; width:100%;
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r); box-shadow:var(--shadow);
+  transition:border-color 0.12s;
+}
+.search-wrap:focus-within { border-color:var(--text-2); }
+.search-input {
+  flex:1; padding:12px 16px; font-family:inherit; font-size:14px;
+  border:none; background:transparent; color:var(--text); outline:none;
+}
+.search-input::placeholder { color:var(--text-3); }
+.search-provider-btn {
+  display:flex; align-items:center; gap:4px;
+  padding:8px 12px; font-family:inherit; font-size:11.5px; font-weight:400;
+  background:var(--surface2); color:var(--text-2); border:none;
+  border-left:0.5px solid var(--border); cursor:pointer;
+  white-space:nowrap; transition:color 0.12s;
+}
+.search-provider-btn:hover { color:var(--text); }
+.search-provider-btn .caret { font-size:9px; opacity:0.5; }
+.search-provider-menu {
+  display:none; position:absolute; top:calc(100% + 6px); right:0;
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.14);
+  min-width:180px; z-index:100; overflow:hidden; padding:4px 0;
+}
+.search-provider-wrap { position:relative; }
+.search-provider-wrap.open .search-provider-menu { display:block; }
+.sp-item {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 14px; font-size:13px; cursor:pointer;
+  color:var(--text-2); transition:background 0.1s; white-space:nowrap;
+}
+.sp-item:hover { background:var(--surface2); color:var(--text); }
+.sp-item.active { color:var(--text); font-weight:500; }
+.sp-divider { height:0.5px; background:var(--border); margin:4px 0; }
+.sp-manage {
+  display:flex; align-items:center; gap:6px;
+  padding:8px 14px; font-size:12px; cursor:pointer;
+  color:var(--text-3); transition:color 0.1s;
+}
+.sp-manage:hover { color:var(--text); }
+
+/* ── Search providers panel ── */
+#search-panel {
+  display:none; position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:min(500px, 96vw);
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r) var(--r) 0 0;
+  box-shadow:0 -4px 32px rgba(0,0,0,0.12); z-index:150;
+}
+#search-panel.open { display:block; }
+.sp-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-bottom:0.5px solid var(--border);
+}
+.sp-panel-title { font-size:13px; font-weight:500; }
+.sp-panel-close {
+  font-size:18px; line-height:1; color:var(--text-3); cursor:pointer;
+  background:none; border:none; font-family:inherit; padding:0 2px;
+}
+.sp-panel-close:hover { color:var(--text); }
+.sp-rows { max-height:260px; overflow-y:auto; }
+.sp-row {
+  display:grid; grid-template-columns:20px 100px 1fr 28px;
+  gap:8px; align-items:center; padding:9px 16px;
+  border-bottom:0.5px solid var(--border);
+}
+.sp-inp {
+  width:100%; padding:6px 8px; font-size:12px; font-family:monospace;
+  border:0.5px solid var(--border-md); border-radius:var(--r-sm);
+  background:var(--surface2); color:var(--text); outline:none;
+  transition:border-color 0.12s;
+}
+.sp-inp:focus { border-color:var(--text); }
+.sp-del {
+  font-size:15px; color:var(--text-3); text-align:center; cursor:pointer;
+  background:none; border:none; font-family:inherit; line-height:1;
+}
+.sp-del:hover { color:var(--danger); }
+.sp-add-row {
+  padding:10px 16px; display:flex; align-items:center; gap:6px;
+  font-size:12.5px; color:var(--text-2); cursor:pointer;
+  border-top:0.5px solid var(--border);
+}
+.sp-add-row:hover { color:var(--text); }
 </style>
 </head>
 <body>
 
-<div id="grid" role="list" aria-label="Shortcuts"></div>
+<div class="header">
+<form id="search-form" class="search-wrap" autocomplete="off">
+  <input id="search-input" class="search-input" type="text" placeholder="Search…" autofocus/>
+  <div class="search-provider-wrap" id="sp-wrap">
+    <button type="button" class="search-provider-btn" id="sp-btn">
+      <span id="sp-label">DuckDuckGo</span>
+      <span class="caret">▾</span>
+    </button>
+    <div class="search-provider-menu" id="sp-menu" role="menu"></div>
+  </div>
+</form>
+</div>
 
+<div class="content">
+<div id="grid" role="list" aria-label="Shortcuts"></div>
+</div>
+
+<div class="footer">
 <div class="toolbar">
 
   <!-- Profile picker -->
@@ -464,6 +589,7 @@ body.no-animations .tile { animation:none !important; }
 
   <button class="btn btn-primary" id="btn-done" style="display:none">Done</button>
 </div>
+</div>
 
 <!-- Tile add/edit modal -->
 <div id="backdrop">
@@ -522,6 +648,19 @@ body.no-animations .tile { animation:none !important; }
   <div class="net-add-row" id="btn-net-add">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Add address pair
+  </div>
+</div>
+
+<!-- Search providers panel -->
+<div id="search-panel" role="dialog" aria-labelledby="sp-panel-title">
+  <div class="sp-panel-header">
+    <div class="sp-panel-title" id="sp-panel-title">Search providers</div>
+    <button class="sp-panel-close" id="btn-sp-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="sp-rows" id="sp-rows"></div>
+  <div class="sp-add-row" id="btn-sp-add">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add provider
   </div>
 </div>
 
@@ -766,6 +905,175 @@ document.getElementById('btn-net-add').addEventListener('click', () => {
   netMap().push({ id: netMapNextId++, local: '', ts: '' });
   saveStore(); renderNetRows();
   const inputs = document.getElementById('net-rows').querySelectorAll('.net-inp');
+  if (inputs.length) inputs[inputs.length - 2].focus();
+});
+
+/* ══════════════════════════════════════
+   4b. SEARCH PROVIDERS (per-profile)
+══════════════════════════════════════ */
+
+const DEFAULT_PROVIDERS = [
+  { name: 'DuckDuckGo', url: 'https://noai.duckduckgo.com/?q=%s' },
+];
+
+function searchProviders() {
+  if (!activeProfile().searchProviders || !activeProfile().searchProviders.length) {
+    activeProfile().searchProviders = JSON.parse(JSON.stringify(DEFAULT_PROVIDERS));
+  }
+  return activeProfile().searchProviders;
+}
+
+function activeSearchIdx() {
+  const idx = activeProfile().activeSearchIdx || 0;
+  return Math.min(idx, searchProviders().length - 1);
+}
+
+function setActiveSearchIdx(idx) {
+  activeProfile().activeSearchIdx = idx;
+  saveStore();
+  tempSearchIdx = null;
+  updateSearchLabel();
+}
+
+// Temporary override (resets after search or on page load)
+let tempSearchIdx = null;
+
+function currentSearchIdx() {
+  if (tempSearchIdx !== null && tempSearchIdx < searchProviders().length) return tempSearchIdx;
+  return activeSearchIdx();
+}
+
+function updateSearchLabel() {
+  const providers = searchProviders();
+  const idx = currentSearchIdx();
+  document.getElementById('sp-label').textContent = providers[idx]?.name || 'Search';
+  document.getElementById('search-input').placeholder = 'Search ' + (providers[idx]?.name || '') + '…';
+}
+
+// Search form submit
+document.getElementById('search-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) return;
+  const providers = searchProviders();
+  const provider = providers[currentSearchIdx()];
+  if (!provider) return;
+  const url = provider.url.replace('%s', encodeURIComponent(q));
+  window.open(url, '_blank', 'noopener');
+  document.getElementById('search-input').value = '';
+  // Reset to default after search
+  tempSearchIdx = null;
+  updateSearchLabel();
+});
+
+// Provider dropdown
+const spWrap = document.getElementById('sp-wrap');
+
+function closeSpMenu() {
+  spWrap.classList.remove('open');
+}
+
+function renderSpMenu() {
+  const menu = document.getElementById('sp-menu');
+  menu.innerHTML = '';
+  const providers = searchProviders();
+  const cur = currentSearchIdx();
+  providers.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'sp-item' + (i === cur ? ' active' : '');
+    item.setAttribute('role', 'menuitem');
+    item.textContent = p.name;
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      tempSearchIdx = i;
+      updateSearchLabel();
+      closeSpMenu();
+    });
+    menu.appendChild(item);
+  });
+
+  const div = document.createElement('div'); div.className = 'sp-divider';
+  menu.appendChild(div);
+
+  const manage = document.createElement('div');
+  manage.className = 'sp-manage';
+  manage.textContent = '⚙ Manage providers…';
+  manage.addEventListener('click', e => {
+    e.stopPropagation();
+    closeSpMenu();
+    openSearchPanel();
+  });
+  menu.appendChild(manage);
+}
+
+document.getElementById('sp-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  if (spWrap.classList.contains('open')) {
+    closeSpMenu();
+  } else {
+    renderSpMenu();
+    spWrap.classList.add('open');
+  }
+});
+
+// Search providers panel
+const searchPanel = document.getElementById('search-panel');
+
+function openSearchPanel() {
+  renderSpRows();
+  searchPanel.classList.add('open');
+}
+
+function closeSearchPanel() {
+  searchPanel.classList.remove('open');
+}
+
+document.getElementById('btn-sp-close').addEventListener('click', closeSearchPanel);
+
+function renderSpRows() {
+  const providers = searchProviders();
+  const container = document.getElementById('sp-rows');
+  container.innerHTML = '';
+  if (!providers.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'padding:14px 16px;font-size:12.5px;color:var(--text-3);text-align:center';
+    empty.textContent = 'No providers yet';
+    container.appendChild(empty);
+    return;
+  }
+  providers.forEach((provider, i) => {
+    const row = document.createElement('div');
+    row.className = 'sp-row';
+    const radio = document.createElement('input');
+    radio.type = 'radio'; radio.name = 'sp-default';
+    radio.checked = (i === activeSearchIdx());
+    radio.style.cssText = 'margin:0;cursor:pointer';
+    radio.addEventListener('change', () => { setActiveSearchIdx(i); renderSpRows(); });
+    const nameInp = document.createElement('input');
+    nameInp.className = 'sp-inp'; nameInp.type = 'text';
+    nameInp.value = provider.name || ''; nameInp.placeholder = 'Name';
+    nameInp.addEventListener('change', () => { provider.name = nameInp.value.trim(); saveStore(); updateSearchLabel(); });
+    const urlInp = document.createElement('input');
+    urlInp.className = 'sp-inp'; urlInp.type = 'text';
+    urlInp.value = provider.url || ''; urlInp.placeholder = 'https://…?q=%s';
+    urlInp.addEventListener('change', () => { provider.url = urlInp.value.trim(); saveStore(); });
+    const del = document.createElement('button');
+    del.className = 'sp-del'; del.textContent = '×';
+    del.setAttribute('aria-label', 'Remove provider');
+    del.addEventListener('click', () => {
+      activeProfile().searchProviders = providers.filter((_, idx) => idx !== i);
+      if (activeSearchIdx() >= searchProviders().length) setActiveSearchIdx(Math.max(0, searchProviders().length - 1));
+      saveStore(); renderSpRows(); updateSearchLabel();
+    });
+    row.append(radio, nameInp, urlInp, del);
+    container.appendChild(row);
+  });
+}
+
+document.getElementById('btn-sp-add').addEventListener('click', () => {
+  searchProviders().push({ name: '', url: '' });
+  saveStore(); renderSpRows();
+  const inputs = document.getElementById('sp-rows').querySelectorAll('.sp-inp');
   if (inputs.length) inputs[inputs.length - 2].focus();
 });
 
@@ -1154,6 +1462,7 @@ function switchProfile(slug) {
   const t = getProfileTheme();
   applyThemeVars(t, t === 'custom' ? getProfileColors() : null);
   applyAnimations(getProfileAnimations());
+  updateSearchLabel();
   renderProfileMenu();
   render();
 }
@@ -1434,8 +1743,11 @@ document.addEventListener('click', e => {
   if (!profileWrap.contains(e.target)) closeProfileMenu();
   if (!exportWrap.contains(e.target)) closeExportMenu();
   if (!themeWrap.contains(e.target)) closeThemeMenu();
+  if (!spWrap.contains(e.target)) closeSpMenu();
   if (netPanel.classList.contains('open') && !netPanel.contains(e.target) && e.target !== document.getElementById('btn-net-map'))
     closeNetPanel();
+  if (searchPanel.classList.contains('open') && !searchPanel.contains(e.target))
+    closeSearchPanel();
 });
 
 // Consolidated escape handler
@@ -1444,6 +1756,8 @@ document.addEventListener('keydown', e => {
     closeProfileMenu();
     closeExportMenu();
     closeThemeMenu();
+    closeSpMenu();
+    closeSearchPanel();
     closeTileModal();
     closeRenameModal();
   }
@@ -1451,6 +1765,7 @@ document.addEventListener('keydown', e => {
 
 // Boot
 updateNetButton();
+updateSearchLabel();
 applyThemeVars(getProfileTheme(), getProfileTheme() === 'custom' ? getProfileColors() : null);
 applyAnimations(getProfileAnimations());
 render();
