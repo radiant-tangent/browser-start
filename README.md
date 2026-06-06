@@ -72,6 +72,30 @@ The grid reflows to fill whatever width is available. Add as many shortcuts as y
 
 ---
 
+## Search
+
+A search bar sits at the top of the page. Type a query and press Enter to search with the active provider (opens in a new tab).
+
+### Switching providers
+
+Click the provider name (e.g. **DuckDuckGo ▾**) to the right of the search input. The dropdown lets you temporarily pick a different provider for your next search — it resets to the default afterward.
+
+### Managing providers
+
+1. Click the provider dropdown → **⚙ Manage providers…**
+2. A panel opens where you can:
+   - **Add** providers (click "+ Add provider")
+   - **Edit** name and URL template for each provider
+   - **Set the default** using the radio button on the left
+   - **Delete** with the × button
+3. URL templates use `%s` as the query placeholder (e.g. `https://www.google.com/search?q=%s`)
+
+### Per-profile
+
+Search providers and the default selection are stored per profile and included in import/export config files.
+
+---
+
 ## Themes
 
 Click the **Theme** button in the toolbar to choose a color scheme. Themes are stored **per profile** — each profile can have its own look.
@@ -134,7 +158,12 @@ Single profile:
     ],
     "netMap": [
       { "id": 1000, "local": "192.168.0.4", "ts": "nas.home" }
-    ]
+    ],
+    "searchProviders": [
+      { "name": "DuckDuckGo", "url": "https://noai.duckduckgo.com/?q=%s" },
+      { "name": "Google Images", "url": "https://www.google.com/search?tbm=isch&q=%s" }
+    ],
+    "activeSearchIdx": 0
   }
 }
 ```
@@ -176,6 +205,8 @@ All profiles:
 | `netMap` | no | Array of network map pairs. |
 | `theme` | no | `"system"`, `"light"`, `"dark"`, or `"custom"`. Defaults to `"system"`. |
 | `themeColors` | no | Custom theme colors (only used when `theme` is `"custom"`). Object with keys: `bg`, `surface`, `text`, `muted`, `accent` — all hex color strings. |
+| `searchProviders` | no | Array of `{ "name": "...", "url": "...?q=%s" }` objects. Defaults to DuckDuckGo if omitted. |
+| `activeSearchIdx` | no | Index (0-based) of the default search provider. Defaults to `0`. |
 
 You can hand-edit these files to bulk-add shortcuts before importing.
 
