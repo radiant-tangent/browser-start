@@ -96,9 +96,23 @@ Search providers and the default selection are stored per profile and included i
 
 ---
 
+## Settings
+
+Click the **Settings** button (⚙) in the footer toolbar to open the settings panel. Settings are stored **per profile**.
+
+### Options
+
+| Setting | Description |
+|---------|-------------|
+| Open links in new window | Off by default — tiles open in the same tab. Toggle on to open in a new tab. |
+| Animations | Toggle the tile fade-in animation on page load. |
+| Theme | Choose System, Light, Dark, or Custom color scheme. |
+
+---
+
 ## Themes
 
-Click the **Theme** button in the toolbar to choose a color scheme. Themes are stored **per profile** — each profile can have its own look.
+Themes are configured in the **Settings** panel. They are stored **per profile** — each profile can have its own look.
 
 ### Options
 
@@ -132,12 +146,10 @@ Custom colors are included in exported config files and travel with the profile 
 Config files are plain JSON. Keep one somewhere safe (cloud storage, a notes app, a git repo) and import it whenever you set up a new device or browser.
 
 ### Export
-Click **Export** to download the current profile as `<profile-name>-config.json`.
-
-Click the **▾** next to Export → **All profiles** to download every profile in a single `all-profiles-config.json`.
+Open **Settings** → click **Export this profile** to download the current profile as `<profile-name>-config.json`, or **Export all profiles** for everything in one file.
 
 ### Import
-Click **Import** and select a JSON file.
+Open **Settings** → click **Import** and select a JSON file.
 
 - **Single-profile file** — if the profile name matches the current profile, you'll be asked to confirm before overwriting. If the name differs, you'll be asked whether to add it as a new profile or overwrite the current one.
 - **All-profiles file** — shows you exactly which profiles will be overwritten and which are new, then merges everything in.
@@ -207,6 +219,7 @@ All profiles:
 | `themeColors` | no | Custom theme colors (only used when `theme` is `"custom"`). Object with keys: `bg`, `surface`, `text`, `muted`, `accent` — all hex color strings. |
 | `searchProviders` | no | Array of `{ "name": "...", "url": "...?q=%s" }` objects. Defaults to DuckDuckGo if omitted. |
 | `activeSearchIdx` | no | Index (0-based) of the default search provider. Defaults to `0`. |
+| `openNewWindow` | no | `true` to open tiles in a new tab, `false` (default) to open in the same tab. |
 
 You can hand-edit these files to bulk-add shortcuts before importing.
 

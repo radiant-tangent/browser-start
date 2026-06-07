@@ -271,29 +271,6 @@ body.editing .tile.drag-over { transform:scale(1.05); animation:none; }
 
 #file-import { display:none; }
 
-/* ── Split export button ── */
-.split-wrap { position:relative; display:inline-flex; }
-.split-wrap .split-main { border-radius:var(--r-sm) 0 0 var(--r-sm); border-right:none; }
-.split-wrap .split-caret {
-  border-radius:0 var(--r-sm) var(--r-sm) 0; padding:7px 9px;
-  font-size:10px; border-left:0.5px solid var(--border);
-}
-.split-menu {
-  display:none; position:absolute; bottom:calc(100% + 6px); left:0;
-  background:var(--surface); border:0.5px solid var(--border-md);
-  border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.14);
-  min-width:150px; z-index:100; overflow:hidden; padding:4px 0;
-}
-.split-wrap.open .split-menu { display:block; }
-.split-item {
-  display:flex; align-items:center; gap:8px;
-  padding:8px 14px; font-size:13px; cursor:pointer;
-  color:var(--text-2); transition:background 0.1s; white-space:nowrap;
-}
-.split-item:hover { background:var(--surface2); color:var(--text); }
-
-
-
 /* ── Network split button ── */
 .net-split { display:inline-flex; }
 .net-split .btn-l { border-radius:var(--r-sm) 0 0 var(--r-sm); border-right:none; }
@@ -364,15 +341,6 @@ body.editing .tile.drag-over { transform:scale(1.05); animation:none; }
 .tile { animation:fadein 0.22s ease both; }
 body.no-animations .tile { animation:none !important; }
 
-/* ── Theme selector ── */
-.theme-wrap { position:relative; }
-.theme-menu {
-  display:none; position:absolute; bottom:calc(100% + 6px); right:0;
-  background:var(--surface); border:0.5px solid var(--border-md);
-  border-radius:var(--r); box-shadow:0 8px 32px rgba(0,0,0,0.14);
-  min-width:200px; z-index:100; overflow:hidden; padding:8px 0;
-}
-.theme-wrap.open .theme-menu { display:block; }
 .theme-item {
   display:flex; align-items:center; gap:8px;
   padding:8px 14px; font-size:13px; cursor:pointer;
@@ -402,22 +370,6 @@ body.no-animations .tile { animation:none !important; }
 }
 .theme-color-field input[type=color]::-webkit-color-swatch-wrapper { padding:0; }
 .theme-color-field input[type=color]::-webkit-color-swatch { border:none; border-radius:4px; }
-.theme-toggle {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:8px 14px; font-size:13px; color:var(--text-2); cursor:pointer;
-}
-.theme-toggle:hover { color:var(--text); }
-.theme-toggle-switch {
-  width:28px; height:16px; border-radius:99px; position:relative;
-  background:var(--text-3); transition:background 0.2s;
-}
-.theme-toggle-switch::after {
-  content:''; position:absolute; top:2px; left:2px;
-  width:12px; height:12px; border-radius:50%;
-  background:#fff; transition:left 0.18s;
-}
-.theme-toggle-switch.on { background:var(--accent); }
-.theme-toggle-switch.on::after { left:14px; }
 
 /* ── Search bar ── */
 .search-wrap {
@@ -508,6 +460,46 @@ body.no-animations .tile { animation:none !important; }
   border-top:0.5px solid var(--border);
 }
 .sp-add-row:hover { color:var(--text); }
+
+/* ── Settings panel ── */
+#settings-panel {
+  display:none; position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:min(500px, 96vw);
+  background:var(--surface); border:0.5px solid var(--border-md);
+  border-radius:var(--r) var(--r) 0 0;
+  box-shadow:0 -4px 32px rgba(0,0,0,0.12); z-index:150;
+}
+#settings-panel.open { display:block; }
+.settings-panel-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-bottom:0.5px solid var(--border);
+}
+.settings-panel-title { font-size:13px; font-weight:500; }
+.settings-panel-close {
+  font-size:18px; line-height:1; color:var(--text-3); cursor:pointer;
+  background:none; border:none; font-family:inherit; padding:0 2px;
+}
+.settings-panel-close:hover { color:var(--text); }
+.settings-panel-body { padding:8px 0; max-height:400px; overflow-y:auto; }
+.settings-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px; font-size:13px; color:var(--text-2);
+}
+.settings-label { flex:1; }
+.settings-toggle-switch {
+  width:28px; height:16px; border-radius:99px; position:relative;
+  background:var(--text-3); transition:background 0.2s; cursor:pointer;
+}
+.settings-toggle-switch::after {
+  content:''; position:absolute; top:2px; left:2px;
+  width:12px; height:12px; border-radius:50%;
+  background:#fff; transition:left 0.18s;
+}
+.settings-toggle-switch.on { background:var(--accent); }
+.settings-toggle-switch.on::after { left:14px; }
+.settings-divider { height:0.5px; background:var(--border); margin:6px 0; }
+.settings-section-title { padding:8px 16px 4px; font-size:11.5px; color:var(--text-3); font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+.settings-actions { display:flex; flex-wrap:wrap; gap:8px; padding:10px 16px; }
 </style>
 </head>
 <body>
@@ -551,45 +543,22 @@ body.no-animations .tile { animation:none !important; }
       <div class="pill" id="net-pill"></div>
     </button><button class="btn btn-r" id="btn-net-map" aria-label="Edit network map">&#9662;</button>
   </div>
-
-  <!-- Import -->
-  <button class="btn" id="btn-import">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Import
-  </button>
-  <input type="file" id="file-import" accept=".json,application/json"/>
-
-  <!-- Export split button -->
-  <div class="split-wrap" id="export-wrap">
-    <button class="btn split-main" id="btn-export">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export
-    </button>
-    <button class="btn split-caret" id="btn-export-caret" aria-label="More export options" aria-haspopup="true" aria-expanded="false">&#9662;</button>
-    <div class="split-menu" id="export-menu" role="menu">
-      <div class="split-item" id="export-current" role="menuitem">This profile</div>
-      <div class="split-item" id="export-all" role="menuitem">All profiles</div>
-    </div>
-  </div>
-
   <!-- Edit -->
   <button class="btn" id="btn-edit">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
     Edit
   </button>
 
-  <!-- Theme selector -->
-  <div class="theme-wrap" id="theme-wrap">
-    <button class="btn" id="btn-theme" aria-haspopup="true" aria-expanded="false" aria-label="Color scheme">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 0 0 14 4 4 0 0 1 0 8 10 10 0 0 0 0-20z" fill="currentColor" opacity="0.15"/><circle cx="8" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><circle cx="9" cy="14" r="1.5" fill="currentColor"/><circle cx="14" cy="13" r="1.5" fill="currentColor"/></svg>
-      Theme
-    </button>
-    <div class="theme-menu" id="theme-menu" role="menu"></div>
-  </div>
+  <!-- Settings -->
+  <button class="btn" id="btn-settings" aria-label="Settings">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </button>
 
   <button class="btn btn-primary" id="btn-done" style="display:none">Done</button>
 </div>
 </div>
+<input type="file" id="file-import" accept=".json,application/json"/>
 
 <!-- Tile add/edit modal -->
 <div id="backdrop">
@@ -661,6 +630,46 @@ body.no-animations .tile { animation:none !important; }
   <div class="sp-add-row" id="btn-sp-add">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Add provider
+  </div>
+</div>
+
+<!-- Settings panel -->
+<div id="settings-panel" role="dialog" aria-labelledby="settings-panel-title">
+  <div class="settings-panel-header">
+    <div class="settings-panel-title" id="settings-panel-title">Settings</div>
+    <button class="settings-panel-close" id="btn-settings-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="settings-panel-body">
+    <!-- Open in new window toggle -->
+    <div class="settings-row">
+      <span class="settings-label">Open links in new window</span>
+      <div class="settings-toggle-switch" id="toggle-new-window"></div>
+    </div>
+    <!-- Animations toggle -->
+    <div class="settings-row">
+      <span class="settings-label">Animations</span>
+      <div class="settings-toggle-switch" id="toggle-animations"></div>
+    </div>
+    <!-- Theme -->
+    <div class="settings-divider"></div>
+    <div class="settings-section-title">Theme</div>
+    <div id="settings-theme-area"></div>
+    <!-- Import/Export -->
+    <div class="settings-divider"></div>
+    <div class="settings-actions">
+      <button class="btn" id="settings-import">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import
+      </button>
+      <button class="btn" id="settings-export">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export this profile
+      </button>
+      <button class="btn" id="settings-export-all">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export all profiles
+      </button>
+    </div>
   </div>
 </div>
 
@@ -960,7 +969,8 @@ document.getElementById('search-form').addEventListener('submit', e => {
   const provider = providers[currentSearchIdx()];
   if (!provider) return;
   const url = provider.url.replace('%s', encodeURIComponent(q));
-  window.open(url, '_blank', 'noopener');
+  const target = activeProfile().openNewWindow ? '_blank' : '_self';
+  window.open(url, target, target === '_blank' ? 'noopener' : '');
   document.getElementById('search-input').value = '';
   // Reset to default after search
   tempSearchIdx = null;
@@ -1155,9 +1165,7 @@ function applyThemeVars(id, colors) {
   Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
 }
 
-function renderThemeMenu() {
-  const menu = document.getElementById('theme-menu');
-  menu.innerHTML = '';
+function renderThemeInSettings(container) {
   const cur = getProfileTheme();
 
   const presets = [
@@ -1175,11 +1183,10 @@ function renderThemeMenu() {
     const label = document.createElement('span');
     label.textContent = p.label;
     item.append(swatch, label);
-    item.addEventListener('click', () => { applyTheme(p.id); renderThemeMenu(); });
-    menu.appendChild(item);
+    item.addEventListener('click', () => { applyTheme(p.id); renderSettingsPanel(); });
+    container.appendChild(item);
   });
 
-  // Custom theme option
   const customItem = document.createElement('div');
   customItem.className = 'theme-item' + (cur === 'custom' ? ' active' : '');
   customItem.setAttribute('role', 'menuitem');
@@ -1190,14 +1197,13 @@ function renderThemeMenu() {
   const cLabel = document.createElement('span');
   cLabel.textContent = 'Custom';
   customItem.append(cSwatch, cLabel);
-  customItem.addEventListener('click', () => { applyTheme('custom', getProfileColors()); renderThemeMenu(); });
-  menu.appendChild(customItem);
+  customItem.addEventListener('click', () => { applyTheme('custom', getProfileColors()); renderSettingsPanel(); });
+  container.appendChild(customItem);
 
-  // Color pickers shown when custom is active
   if (cur === 'custom') {
     const divider = document.createElement('div');
     divider.className = 'theme-divider';
-    menu.appendChild(divider);
+    container.appendChild(divider);
 
     const grid = document.createElement('div');
     grid.className = 'theme-colors';
@@ -1224,47 +1230,70 @@ function renderThemeMenu() {
       wrap.append(lbl, inp);
       grid.appendChild(wrap);
     });
-    menu.appendChild(grid);
+    container.appendChild(grid);
   }
+}
 
-  // Animation toggle
-  const divider2 = document.createElement('div');
-  divider2.className = 'theme-divider';
-  menu.appendChild(divider2);
+// Settings panel
+const settingsPanel = document.getElementById('settings-panel');
 
-  const toggle = document.createElement('div');
-  toggle.className = 'theme-toggle';
-  const toggleLabel = document.createElement('span');
-  toggleLabel.textContent = 'Animations';
-  const toggleSwitch = document.createElement('div');
-  toggleSwitch.className = 'theme-toggle-switch' + (getProfileAnimations() ? ' on' : '');
-  toggle.append(toggleLabel, toggleSwitch);
-  toggle.addEventListener('click', () => {
+function openSettingsPanel() {
+  renderSettingsPanel();
+  settingsPanel.classList.add('open');
+}
+
+function closeSettingsPanel() {
+  settingsPanel.classList.remove('open');
+}
+
+document.getElementById('btn-settings').addEventListener('click', e => {
+  e.stopPropagation();
+  if (settingsPanel.classList.contains('open')) closeSettingsPanel();
+  else openSettingsPanel();
+});
+
+document.getElementById('btn-settings-close').addEventListener('click', closeSettingsPanel);
+
+function renderSettingsPanel() {
+  const newWinToggle = document.getElementById('toggle-new-window');
+  newWinToggle.className = 'settings-toggle-switch' + (activeProfile().openNewWindow ? ' on' : '');
+  newWinToggle.onclick = () => {
+    activeProfile().openNewWindow = !activeProfile().openNewWindow;
+    saveStore();
+    newWinToggle.className = 'settings-toggle-switch' + (activeProfile().openNewWindow ? ' on' : '');
+  };
+
+  const animToggle = document.getElementById('toggle-animations');
+  animToggle.className = 'settings-toggle-switch' + (getProfileAnimations() ? ' on' : '');
+  animToggle.onclick = () => {
     const newVal = !getProfileAnimations();
     activeProfile().animations = newVal;
     saveStore();
     applyAnimations(newVal);
-    toggleSwitch.className = 'theme-toggle-switch' + (newVal ? ' on' : '');
-  });
-  menu.appendChild(toggle);
+    animToggle.className = 'settings-toggle-switch' + (newVal ? ' on' : '');
+  };
+
+  const themeArea = document.getElementById('settings-theme-area');
+  themeArea.innerHTML = '';
+  renderThemeInSettings(themeArea);
 }
 
-const themeWrap = document.getElementById('theme-wrap');
+document.getElementById('settings-import').addEventListener('click', () => {
+  closeSettingsPanel();
+  document.getElementById('file-import').click();
+});
 
-function closeThemeMenu() {
-  themeWrap.classList.remove('open');
-  document.getElementById('btn-theme').setAttribute('aria-expanded', 'false');
-}
+document.getElementById('settings-export').addEventListener('click', () => {
+  closeSettingsPanel();
+  doExport({ profile: activeProfile() }, slugify(activeProfile().name) + '-config.json');
+  toast('Exported "' + activeProfile().name + '" ✓');
+});
 
-document.getElementById('btn-theme').addEventListener('click', e => {
-  e.stopPropagation();
-  if (themeWrap.classList.contains('open')) {
-    closeThemeMenu();
-  } else {
-    renderThemeMenu();
-    themeWrap.classList.add('open');
-    document.getElementById('btn-theme').setAttribute('aria-expanded', 'true');
-  }
+document.getElementById('settings-export-all').addEventListener('click', () => {
+  closeSettingsPanel();
+  const count = Object.keys(store.profiles).length;
+  doExport({ version: 2, profiles: store.profiles }, 'all-profiles-config.json');
+  toast('Exported ' + count + ' profile' + (count !== 1 ? 's' : '') + ' ✓');
 });
 
 /* ══════════════════════════════════════
@@ -1360,7 +1389,10 @@ function makeTile(tile, idx) {
 
   wrap.addEventListener('click', () => {
     if (document.body.classList.contains('editing')) openTileModal(tile.id);
-    else window.open(rewriteUrl(tile.url), '_blank', 'noopener');
+    else {
+      const target = activeProfile().openNewWindow ? '_blank' : '_self';
+      window.open(rewriteUrl(tile.url), target, target === '_blank' ? 'noopener' : '');
+    }
   });
   wrap.addEventListener('keydown', e => { if (e.key === 'Enter') wrap.click(); });
   return wrap;
@@ -1613,38 +1645,6 @@ document.getElementById('btn-done').addEventListener('click', () => {
    10. IMPORT / EXPORT
 ══════════════════════════════════════ */
 
-const exportWrap = document.getElementById('export-wrap');
-const exportCaret = document.getElementById('btn-export-caret');
-
-function closeExportMenu() {
-  exportWrap.classList.remove('open');
-  exportCaret.setAttribute('aria-expanded', 'false');
-}
-
-document.getElementById('btn-export').addEventListener('click', () => {
-  doExport({ profile: activeProfile() }, slugify(activeProfile().name) + '-config.json');
-  toast('Exported "' + activeProfile().name + '" ✓');
-});
-exportCaret.addEventListener('click', e => {
-  e.stopPropagation();
-  if (exportWrap.classList.contains('open')) closeExportMenu();
-  else { exportWrap.classList.add('open'); exportCaret.setAttribute('aria-expanded', 'true'); }
-});
-document.getElementById('export-current').addEventListener('click', () => {
-  closeExportMenu();
-  doExport({ profile: activeProfile() }, slugify(activeProfile().name) + '-config.json');
-  toast('Exported "' + activeProfile().name + '" ✓');
-});
-document.getElementById('export-all').addEventListener('click', () => {
-  closeExportMenu();
-  const count = Object.keys(store.profiles).length;
-  doExport({ version: 2, profiles: store.profiles }, 'all-profiles-config.json');
-  toast('Exported ' + count + ' profile' + (count !== 1 ? 's' : '') + ' ✓');
-});
-
-document.getElementById('btn-import').addEventListener('click', () =>
-  document.getElementById('file-import').click()
-);
 document.getElementById('file-import').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
@@ -1688,6 +1688,7 @@ document.getElementById('file-import').addEventListener('change', e => {
         const p = { name, tiles: base.tiles };
         if (base.theme) p.theme = base.theme;
         if (base.themeColors) p.themeColors = base.themeColors;
+        if (base.openNewWindow !== undefined) p.openNewWindow = base.openNewWindow;
         if (base.animations !== undefined) p.animations = base.animations;
         if (base.netMap) p.netMap = base.netMap;
         if (base.searchProviders) p.searchProviders = base.searchProviders;
@@ -1746,23 +1747,22 @@ document.getElementById('file-import').addEventListener('change', e => {
 // Consolidated click-outside handler
 document.addEventListener('click', e => {
   if (!profileWrap.contains(e.target)) closeProfileMenu();
-  if (!exportWrap.contains(e.target)) closeExportMenu();
-  if (!themeWrap.contains(e.target)) closeThemeMenu();
   if (!spWrap.contains(e.target)) closeSpMenu();
   if (netPanel.classList.contains('open') && !netPanel.contains(e.target) && e.target !== document.getElementById('btn-net-map'))
     closeNetPanel();
   if (searchPanel.classList.contains('open') && !searchPanel.contains(e.target))
     closeSearchPanel();
+  if (settingsPanel.classList.contains('open') && !settingsPanel.contains(e.target) && e.target !== document.getElementById('btn-settings'))
+    closeSettingsPanel();
 });
 
 // Consolidated escape handler
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeProfileMenu();
-    closeExportMenu();
-    closeThemeMenu();
     closeSpMenu();
     closeSearchPanel();
+    closeSettingsPanel();
     closeTileModal();
     closeRenameModal();
   }
@@ -1777,6 +1777,5 @@ render();
 </script>
 </body>
 </html>
-
 
 
