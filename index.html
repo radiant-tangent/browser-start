@@ -1387,11 +1387,19 @@ function makeTile(tile, idx) {
     saveStore(); render();
   });
 
-  wrap.addEventListener('click', () => {
+  wrap.addEventListener('click', e => {
     if (document.body.classList.contains('editing')) openTileModal(tile.id);
     else {
-      const target = activeProfile().openNewWindow ? '_blank' : '_self';
-      window.open(rewriteUrl(tile.url), target, target === '_blank' ? 'noopener' : '');
+      const forceNew = e.metaKey || e.ctrlKey;
+      const target = (forceNew || activeProfile().openNewWindow) ? '_blank' : '_self';
+      const a = document.createElement('a');
+      a.href = rewriteUrl(tile.url);
+      a.target = target;
+      if (target === '_blank') a.rel = 'noopener';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     }
   });
   wrap.addEventListener('keydown', e => { if (e.key === 'Enter') wrap.click(); });
