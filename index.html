@@ -100,6 +100,7 @@ body {
   transition:box-shadow 0.13s ease;
   image-rendering:-webkit-optimize-contrast;
   image-rendering:crisp-edges;
+  pointer-events:none;
 }
 .tile:hover .tile-img { box-shadow:0 4px 18px rgba(0,0,0,0.12); }
 
@@ -110,6 +111,7 @@ body {
   font-size:22px; font-weight:500; color:var(--text-2);
   text-transform:uppercase; flex-shrink:0;
   transition:box-shadow 0.13s ease;
+  pointer-events:none;
 }
 .tile:hover .tile-fallback { box-shadow:0 4px 18px rgba(0,0,0,0.12); }
 
@@ -117,6 +119,7 @@ body {
   font-size:11.5px; font-weight:400; color:var(--text-2);
   max-width:100px; text-align:center;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1;
+  pointer-events:none;
 }
 
 /* Add tile */
@@ -1301,10 +1304,12 @@ document.getElementById('settings-export-all').addEventListener('click', () => {
 ══════════════════════════════════════ */
 
 function makeTile(tile, idx) {
-  const wrap = document.createElement('div');
+  const wrap = document.createElement('a');
   wrap.className = 'tile';
   wrap.setAttribute('role', 'listitem');
   wrap.setAttribute('tabindex', '0');
+  wrap.href = rewriteUrl(tile.url);
+  if (activeProfile().openNewWindow) { wrap.target = '_blank'; wrap.rel = 'noopener'; }
   wrap.style.animationDelay = (idx * 28) + 'ms';
 
   const src = tile.icon || faviconFor(tile.url);
@@ -1388,21 +1393,13 @@ function makeTile(tile, idx) {
   });
 
   wrap.addEventListener('click', e => {
-    if (document.body.classList.contains('editing')) openTileModal(tile.id);
-    else {
-      const forceNew = e.metaKey || e.ctrlKey;
-      const target = (forceNew || activeProfile().openNewWindow) ? '_blank' : '_self';
-      const a = document.createElement('a');
-      a.href = rewriteUrl(tile.url);
-      a.target = target;
-      if (target === '_blank') a.rel = 'noopener';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+    if (document.body.classList.contains('editing')) {
+      e.preventDefault();
+      openTileModal(tile.id);
     }
+    // Otherwise let the native anchor handle navigation (respects
+    // target, cmd/ctrl-click for new tab, right-click menu, etc.)
   });
-  wrap.addEventListener('keydown', e => { if (e.key === 'Enter') wrap.click(); });
   return wrap;
 }
 
